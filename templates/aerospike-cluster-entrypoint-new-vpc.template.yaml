@@ -1,6 +1,12 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: 'Deploy an Aerospike Cluster into a new VPC (qs-1rpniq8qr)'
 Metadata:
+  cfn-lint:
+    config:
+      ignore_checks:
+        - W
+      ignore_reasons:
+        - W: ignore warnings for initial migration
   QuickStartDocumentation:
     EntrypointName: "Parameters for deploying into a new VPC"
     Order: Index a

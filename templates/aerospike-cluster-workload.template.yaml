@@ -1,6 +1,13 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: Template to create an Aerospike cluster on existing vpc (qs-1rpniq8qr)
 Metadata:
+  cfn-lint:
+    config:
+      ignore_checks:
+        - W
+      ignore_reasons:
+        - W: ignore warnings for initial migration
+
   AWSAMIRegionMap:
     Filters:
       AEROSPIKEAMI:
