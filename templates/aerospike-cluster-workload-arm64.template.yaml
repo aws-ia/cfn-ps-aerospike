@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Template to create an Aerospike cluster on existing vpc ("qs-20linm3r7")
+Description: Template to create an Aerospike cluster on existing vpc using Arm64 instance ("qs-20linm3r7")
 Metadata:
   AWSAMIRegionMap:
     Filters:
@@ -354,7 +354,6 @@ Conditions:
     - !Not [!Equals [!Ref PrivateSubnet2ID, ""]]
     - !Not [!Equals [!Ref PrivateSubnet3ID, ""]]
   MonitoringStackEnabled: !Equals [!Ref MonitoringStack, "Prometheus + Grafana + asbench"]
-
 Mappings:
   AWSAMIRegionMap:
     AMI:
@@ -393,7 +392,6 @@ Mappings:
       AEROSPIKEAMI: ami-06b20767880c32358
     sa-east-1:
       AEROSPIKEAMI: ami-004fce1fc229391bd
-
 Resources:
   BastionStack:
     Metadata: { cfn-lint: { config: { ignore_checks: [ W9901 ] } } }
@@ -417,7 +415,6 @@ Resources:
         QSS3BucketRegion: !Ref QSS3BucketRegion
         RemoteAccessCIDR: !Ref AccessCIDR
         VPCID: !Ref VPCID
-
   PsuedoRandom:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
@@ -867,7 +864,6 @@ Resources:
         RemoteAccessCIDR: !Ref AccessCIDR
         VPCID: !Ref VPCID
         AerospikeClusterAutoscalingGroup: !Ref ClusterGroup
-
 Outputs:
   BastionHostIP:
     Description: IP for bastion host.

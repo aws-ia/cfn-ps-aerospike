@@ -258,7 +258,7 @@ Parameters:
     AllowedValues:
       - 'yes'
       - 'no'
- InstanceType:
+  InstanceType:
     Description: Type of ARM64 EC2 instance to deploy for the Aerospike cluster.
     Type: String
     Default: m6g.xlarge
@@ -399,7 +399,6 @@ Mappings:
       AEROSPIKEAMI: ami-06b20767880c32358
     sa-east-1:
       AEROSPIKEAMI: ami-004fce1fc229391bd
-
 Resources:
   VPCStack:
     Type: AWS::CloudFormation::Stack
@@ -450,7 +449,6 @@ Resources:
         NumBastionHosts: !Ref NumBastionHosts
         BastionAMIOS: !Ref BastionAMIOS
         MonitoringStack: !Ref MonitoringStack
-
 Outputs:
   BastionHostIP:
     Description: IP for bastion host.

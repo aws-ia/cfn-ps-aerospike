@@ -26,7 +26,16 @@ tests:
       KeyPairName: override
     regions:
       - us-east-1
-    template: templates/aerospike-cluster-entrypoint-new-vpc.template.yaml
+    template: ./templates/aerospike-cluster-entrypoint-new-vpc.template.yaml
+  arm64-single-region:
+    parameters:
+      AvailabilityZones: $[taskcat_genaz_2]
+      NumberOfAZs: 2
+      AccessCIDR: override
+      KeyPairName: override
+    regions:
+      - us-east-1
+    template: ./templates/aerospike-cluster-entrypoint-new-vpc-arm64.template.yaml
   aerospike-multi-region:
     parameters:
       AvailabilityZones: $[taskcat_genaz_3]
@@ -42,17 +51,8 @@ tests:
       - eu-central-1
       - ap-southeast-1
       - sa-east-1
-    template: templates/aerospike-cluster-entrypoint-new-vpc.template.yaml
-  aerospike-arm-single-region:
-    parameters:
-      AvailabilityZones: $[taskcat_genaz_2]
-      NumberOfAZs: 2
-      AccessCIDR: override
-      KeyPairName: override
-    regions:
-      - us-east-1
-    template: templates/aerospike-cluster-entrypoint-new-vpc-arm64.template.yaml
-  aerospike-arm-multi-region:
+    template: ./templates/aerospike-cluster-entrypoint-new-vpc.template.yaml
+  arm64-multi-region:
     parameters:
       AvailabilityZones: $[taskcat_genaz_3]
       NumberOfAZs: 3
@@ -67,4 +67,4 @@ tests:
       - eu-central-1
       - ap-southeast-1
       - sa-east-1
-    template: templates/aerospike-cluster-entrypoint-new-vpc-arm64.template.yaml
+    template: ./templates/aerospike-cluster-entrypoint-new-vpc-arm64.template.yaml
