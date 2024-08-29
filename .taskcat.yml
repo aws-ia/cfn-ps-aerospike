@@ -25,7 +25,7 @@ tests:
       AccessCIDR: override
       KeyPairName: override
     regions:
-      - us-east-1
+      - us-west-1
     template: ./templates/aerospike-cluster-entrypoint-new-vpc.template.yaml
   arm64-single-region:
     parameters:
@@ -45,7 +45,6 @@ tests:
       KeyPairName: override
     regions:
       - us-east-2
-      - us-west-1
       - us-west-2
       - ca-central-1
       - eu-central-1
@@ -61,7 +60,6 @@ tests:
       KeyPairName: override
     regions:
       - us-east-2
-      - us-west-1
       - us-west-2
       - ca-central-1
       - eu-central-1
