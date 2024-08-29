@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Template to create an Aerospike cluster on existing vpc using Arm64 instance ("qs-20linm3r7")
+Description: Template to create an Aerospike cluster on existing vpc using Arm64 instance (qs-20linm3r7)
 Metadata:
   AWSAMIRegionMap:
     Filters:

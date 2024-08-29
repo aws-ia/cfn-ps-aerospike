@@ -267,10 +267,6 @@ Parameters:
     Description: Will be attached to all created IAM Roles to satisfy security requirements
     Type: String
     Default: ''
-  AerospikeClusterAutoscalingGroup:
-    Default: ""
-    Description: Name of aerospike autoscaling group.
-    Type: String
 Rules:
   SubnetsInVPC:
     Assertions:
