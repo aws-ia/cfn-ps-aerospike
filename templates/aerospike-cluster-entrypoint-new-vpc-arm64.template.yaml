@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Deploy an Aerospike Cluster into a new VPC (qs-1rpniq8qr)'
+Description: 'Deploy an Aerospike Cluster into a new VPC using Arm64 AeroSpike image (qs-20l0fcogs)'
 Metadata:
   QuickStartDocumentation:
     EntrypointName: "Parameters for deploying into a new VPC"
@@ -258,85 +258,83 @@ Parameters:
     AllowedValues:
       - 'yes'
       - 'no'
-  InstanceType:
-    Description: Type of EC2 instance to deploy for the Aerospike cluster.
+ InstanceType:
+    Description: Type of ARM64 EC2 instance to deploy for the Aerospike cluster.
     Type: String
-    Default: m5d.xlarge
+    Default: m6g.xlarge
     AllowedValues:
-      - t2.micro
-      - t2.small
-      - t2.medium
-      - t2.large
-      - t3.micro
-      - t3.small
-      - t3.medium
-      - t3.large
-      - t3.xlarge
-      - t3.2xlarge
-      - m5.large
-      - m5.xlarge
-      - m5.2xlarge
-      - m5.4xlarge
-      - m5.8xlarge
-      - m5.12xlarge
-      - m5.24xlarge
-      - m5.metal
-      - m5d.large
-      - m5d.xlarge
-      - m5d.2xlarge
-      - m5d.4xlarge
-      - m5d.8xlarge
-      - m5d.12xlarge
-      - m5d.16xlarge
-      - m5d.24xlarge
-      - m5d.metal
-      - c5.large
-      - c5.xlarge
-      - c5.2xlarge
-      - c5.4xlarge
-      - c5.9xlarge
-      - c5.18xlarge
-      - c5.24xlarge
-      - c5.metal
-      - c5d.large
-      - c5d.xlarge
-      - c5d.2xlarge
-      - c5d.4xlarge
-      - c5d.9xlarge
-      - c5d.18xlarge
-      - r5.large
-      - r5.xlarge
-      - r5.2xlarge
-      - r5.4xlarge
-      - r5.8xlarge
-      - r5.12xlarge
-      - r5.16xlarge
-      - r5.24xlarge
-      - r5.metal
-      - r5d.large
-      - r5d.xlarge
-      - r5d.2xlarge
-      - r5d.4xlarge
-      - r5d.8xlarge
-      - r5d.12xlarge
-      - r5d.16xlarge
-      - r5d.24xlarge
-      - r5d.metal
-      - i3.large
-      - i3.xlarge
-      - i3.2xlarge
-      - i3.4xlarge
-      - i3.8xlarge
-      - i3.16xlarge
-      - i3.metal
-      - i3en.large
-      - i3en.xlarge
-      - i3en.2xlarge
-      - i3en.3xlarge
-      - i3en.6xlarge
-      - i3en.12xlarge
-      - i3en.24xlarge
-      - i3en.metal
+      - c6g.12xlarge
+      - c6g.16xlarge
+      - c6g.2xlarge
+      - c6g.4xlarge
+      - c6g.8xlarge
+      - c6g.large
+      - c6g.medium
+      - c6g.metal
+      - c6g.xlarge
+      - c7g.12xlarge
+      - c7g.16xlarge
+      - c7g.2xlarge
+      - c7g.4xlarge
+      - c7g.8xlarge
+      - c7g.large
+      - c7g.medium
+      - c7g.metal
+      - c7g.xlarge
+      - i4g.16xlarge
+      - i4g.2xlarge
+      - i4g.4xlarge
+      - i4g.8xlarge
+      - i4g.large
+      - i4g.xlarge
+      - is4gen.2xlarge
+      - is4gen.4xlarge
+      - is4gen.8xlarge
+      - is4gen.large
+      - is4gen.medium
+      - is4gen.xlarge
+      - m6g.12xlarge
+      - m6g.16xlarge
+      - m6g.2xlarge
+      - m6g.4xlarge
+      - m6g.8xlarge
+      - m6g.large
+      - m6g.medium
+      - m6g.metal
+      - m6g.xlarge
+      - m7g.12xlarge
+      - m7g.16xlarge
+      - m7g.2xlarge
+      - m7g.4xlarge
+      - m7g.8xlarge
+      - m7g.large
+      - m7g.medium
+      - m7g.metal
+      - r6g.12xlarge
+      - r6g.16xlarge
+      - r6g.2xlarge
+      - r6g.4xlarge
+      - r6g.8xlarge
+      - r6g.large
+      - r6g.medium
+      - r6g.metal
+      - r6g.xlarge
+      - r7g.12xlarge
+      - r7g.16xlarge
+      - r7g.2xlarge
+      - r7g.4xlarge
+      - r7g.8xlarge
+      - r7g.large
+      - r7g.medium
+      - r7g.metal
+      - r7g.xlarge
+      - t4g.2xlarge
+      - t4g.large
+      - t4g.medium
+      - t4g.micro
+      - t4g.nano
+      - t4g.small
+      - t4g.xlarge
   EBS:
     Description: |
       Size of the EBS SSD volume in GB. The volume attaches under /dev/sdg. Limit of 16000. Enter 0 if you do not want to use EBS.
@@ -366,42 +364,41 @@ Conditions:
 Mappings:
   AWSAMIRegionMap:
     AMI:
-      AEROSPIKEAMI: aerospike-amazonlinux2023-20240610151158
+      AEROSPIKEAMI: aerospike-amazonlinux2023-arm64-20240610150002
     us-east-1:
-      AEROSPIKEAMI: ami-0a1605154289c76fd
+      AEROSPIKEAMI: ami-0c31167ccf59a9aa4
     us-east-2:
-      AEROSPIKEAMI: ami-0f7add11768c709bf
+      AEROSPIKEAMI: ami-02473208c26892c8d
     us-west-1:
-      AEROSPIKEAMI: ami-0f8fcf12f33799be9
+      AEROSPIKEAMI: ami-04844587df471bae3
     us-west-2:
-      AEROSPIKEAMI: ami-082a9a6487af866f1
+      AEROSPIKEAMI: ami-07d78608c220f0d14
     ca-central-1:
-      AEROSPIKEAMI: ami-0e2a2eecc500cdede
+      AEROSPIKEAMI: ami-0d60992b32f43b2b3
     eu-west-1:
-      AEROSPIKEAMI: ami-03f3cf8425e6b689f
+      AEROSPIKEAMI: ami-0d60027da1555fceb
     eu-west-2:
-      AEROSPIKEAMI: ami-0fb7b87c2b644ef8d
+      AEROSPIKEAMI: ami-07cf113bfa1027765
     eu-west-3:
-      AEROSPIKEAMI: ami-084b6fd20d44d9285
+      AEROSPIKEAMI: ami-0c8a7d4614bdb22d2
     eu-north-1:
-      AEROSPIKEAMI: ami-0782ce37d59791c48
+      AEROSPIKEAMI: ami-016eebab9d983ade1
     eu-central-1:
-      AEROSPIKEAMI: ami-0335e6ac75212ca3a
+      AEROSPIKEAMI: ami-00b48941ccd41e2d0
     ap-southeast-1:
-      AEROSPIKEAMI: ami-095cd6394e0387316
+      AEROSPIKEAMI: ami-04e36be0f26ad1136
     ap-southeast-2:
-      AEROSPIKEAMI: ami-0fe9ea9e01ea8f184
+      AEROSPIKEAMI: ami-0ed4c2598fecaaa85
     ap-south-1:
-      AEROSPIKEAMI: ami-0b1d31c6b36d3eb68
+      AEROSPIKEAMI: ami-0af4ce70c87fd8e24
     ap-northeast-1:
-      AEROSPIKEAMI: ami-06fb22f151bc899a9
+      AEROSPIKEAMI: ami-0f30f208ca67316d7
     ap-northeast-2:
-      AEROSPIKEAMI: ami-07e03137d3f0da61b
+      AEROSPIKEAMI: ami-029754c83003bb779
     ap-northeast-3:
-      AEROSPIKEAMI: ami-07c1ad210308d28dc
+      AEROSPIKEAMI: ami-06b20767880c32358
     sa-east-1:
-      AEROSPIKEAMI: ami-0ab9df378e0865c07
-
+      AEROSPIKEAMI: ami-004fce1fc229391bd
 
 Resources:
   VPCStack:
@@ -427,7 +424,7 @@ Resources:
     Type: 'AWS::CloudFormation::Stack'
     Properties:
       TemplateURL: !Sub
-        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/aerospike-cluster-workload.template.yaml'
+        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/aerospike-cluster-workload-arm64.template.yaml'
         - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:

@@ -6,13 +6,14 @@ project:
   lambda_source_path: functions/source
   lambda_zip_path: functions/packages
   regions:
-  - us-east-1
-  template: templates/aerospike-cluster-entrypoint-new-vpc.template.yaml
+    - us-east-2
+    - us-west-1
+    - us-west-2
+    - ca-central-1
+    - eu-central-1
+    - ap-southeast-1
+    - sa-east-1
   parameters:
-    AvailabilityZones: $[taskcat_genaz_2]
-    NumberOfAZs: 2
-    AccessCIDR: --overridden--
-    KeyPairName: --overridden--
     QSS3BucketName: $[taskcat_autobucket]
     QSS3BucketRegion: $[taskcat_current_region]
     QSS3KeyPrefix: cfn-ps-aerospike/
@@ -21,18 +22,49 @@ tests:
     parameters:
       AvailabilityZones: $[taskcat_genaz_2]
       NumberOfAZs: 2
+      AccessCIDR: override
+      KeyPairName: override
     regions:
-    - us-east-1
+      - us-east-1
+    template: templates/aerospike-cluster-entrypoint-new-vpc.template.yaml
   aerospike-multi-region:
     parameters:
       AvailabilityZones: $[taskcat_genaz_3]
       NumberOfAZs: 3
       MonitoringStack: "None"
+      AccessCIDR: override
+      KeyPairName: override
     regions:
-    - us-east-2
-    - us-west-1
-    - us-west-2
-    - ca-central-1
-    - eu-central-1
-    - ap-southeast-1
-    - sa-east-1
+      - us-east-2
+      - us-west-1
+      - us-west-2
+      - ca-central-1
+      - eu-central-1
+      - ap-southeast-1
+      - sa-east-1
+    template: templates/aerospike-cluster-entrypoint-new-vpc.template.yaml
+  aerospike-arm-single-region:
+    parameters:
+      AvailabilityZones: $[taskcat_genaz_2]
+      NumberOfAZs: 2
+      AccessCIDR: override
+      KeyPairName: override
+    regions:
+      - us-east-1
+    template: templates/aerospike-cluster-entrypoint-new-vpc-arm64.template.yaml
+  aerospike-arm-multi-region:
+    parameters:
+      AvailabilityZones: $[taskcat_genaz_3]
+      NumberOfAZs: 3
+      MonitoringStack: "None"
+      AccessCIDR: override
+      KeyPairName: override
+    regions:
+      - us-east-2
+      - us-west-1
+      - us-west-2
+      - ca-central-1
+      - eu-central-1
+      - ap-southeast-1
+      - sa-east-1
+    template: templates/aerospike-cluster-entrypoint-new-vpc-arm64.template.yaml
