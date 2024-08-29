@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Template to create an Aerospike cluster on existing vpc (qs-1rpniq8qr)
+Description: Template to create an Aerospike cluster on existing vpc (qs-20linljgt)
 Metadata:
   AWSAMIRegionMap:
     Filters:
