@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: LinuxBastion+VPC Jul,30,2020 (qs-1qup6ra99) (Please do not remove)
+Description: LinuxBastion+VPC Monitoring (qs-1qup6ra99) (Please do not remove)
 Metadata:
   QuickStartDocumentation:
     EntrypointName: Launch into an existing VPC
@@ -104,10 +104,14 @@ Parameters:
     AllowedValues:
       - Amazon-Linux2-HVM
       - Amazon-Linux2-HVM-ARM
+      - Amazon-Linux2023
+      - Amazon-Linux2023-ARM
       - CentOS-7-HVM
       - Ubuntu-Server-20.04-LTS-HVM
+      - Ubuntu-Server-22.04-LTS-HVM
+      - Ubuntu-Server-22.04-LTS-HVM-ARM
       - SUSE-SLES-15-HVM
-    Default: Amazon-Linux2-HVM
+    Default: Amazon-Linux2023
     Description: The Linux distribution for the AMI to be used for the bastion instances.
     Type: String
   BastionHostName:
@@ -263,10 +267,6 @@ Parameters:
     Description: Will be attached to all created IAM Roles to satisfy security requirements
     Type: String
     Default: ''
-  AerospikeClusterAutoscalingGroup:
-    Default: ""
-    Description: Name of aerospike autoscaling group.
-    Type: String
 Rules:
   SubnetsInVPC:
     Assertions:
@@ -278,165 +278,366 @@ Rules:
             - 'Fn::RefAll': 'AWS::EC2::VPC::Id'
         AssertDescription: All subnets must exist in the VPC.
   ArmInstance:
+    RuleCondition: !Contains
+      - - Amazon-Linux2-HVM-ARM
+        - Amazon-Linux2023-ARM
+        - Ubuntu-Server-22.04-LTS-HVM-ARM
+      - !Ref BastionAMIOS
     Assertions:
       - Assert: !Contains
           - - t4g.nano
-            - t4g.medium
-            - t4g.large
             - t4g.micro
             - t4g.small
-            - t4g.2xlarge
+            - t4g.medium
+            - t4g.large
             - t4g.xlarge
-          - !Ref 'BastionInstanceType'
-        AssertDescription: This instance type must use BastionAMIOS type of Amazon-Linux2-HVM-ARM.
-    RuleCondition: !Equals
-      - !Ref BastionAMIOS
-      - Amazon-Linux2-HVM-ARM
+            - t4g.2xlarge
+            - m6g.medium
+            - m6g.large
+            - m6g.xlarge
+            - m6g.2xlarge
+          - !Ref BastionInstanceType
+        AssertDescription: >-
+          You selected an ARM AMI operating system, so you must also enter an
+          ARM instance type, such as t4g.micro. For additional details, see
+          https://aws.amazon.com/ec2/instance-types/.
+  X86_64Instance:
+    RuleCondition: !Not
+      - !Contains
+          - - Amazon-Linux2-HVM-ARM
+            - Amazon-Linux2023-ARM
+            - Ubuntu-Server-22.04-LTS-HVM-ARM
+          - !Ref BastionAMIOS
+    Assertions:
+      - Assert: !Not
+        - !Contains
+            - - t4g.nano
+              - t4g.micro
+              - t4g.small
+              - t4g.medium
+              - t4g.large
+              - t4g.xlarge
+              - t4g.2xlarge
+              - m6g.medium
+              - m6g.large
+              - m6g.xlarge
+              - m6g.2xlarge
+            - !Ref BastionInstanceType
+        AssertDescription: >-
+          You selected a x86_64 AMI operating system, so you must also enter a
+          x86_64 instance type, such as t3.micro. For additional details, see
+          https://aws.amazon.com/ec2/instance-types/.
 Mappings:
   AWSAMIRegionMap:
     af-south-1:
-      AMZNLINUX2: ami-0936d2754993c364e
-      AMZNLINUX2ARM: ami-01d326fa7db123542
-      US2004HVM: ami-022666956ad401a16
-      CENTOS7HVM: ami-0a2be7731769e6cc1
-    ap-northeast-1:
-      AMZNLINUX2: ami-0f9a314ce79311c88
-      AMZNLINUX2ARM: ami-0d874cf52d89e1e4b
-      US2004HVM: ami-098a3ed87d767edf9
-      CENTOS7HVM: ami-06a46da680048c8ae
-      SLES15HVM: ami-056ac8ad44e6a7e1f
-    ap-northeast-2:
-      AMZNLINUX2: ami-0195322846474ddb9
-      AMZNLINUX2ARM: ami-06a997e23f0199d45
-      US2004HVM: ami-0f62054c960a1ed89
-      CENTOS7HVM: ami-06e83aceba2cb0907
-      SLES15HVM: ami-0f81fff879bafe6b8
-    ap-northeast-3:
-      AMZNLINUX2: ami-0aaad057694fe2fe6
-      AMZNLINUX2ARM: ami-063f458e2f70f8951
-      US2004HVM: ami-027eb1b2453db16fd
-      CENTOS7HVM: ami-02d6b455335e3af14
-      SLES15HVM: ami-0d8518dd12d11dfc2
-    ap-south-1:
-      AMZNLINUX2: ami-08f3712c8ca5af75e
-      AMZNLINUX2ARM: ami-0494f7473bf694265
-      US2004HVM: ami-03eb28f2d8e9e5448
-      CENTOS7HVM: ami-026f33d38b6410e30
-      SLES15HVM: ami-01be89269d32f2a16
-    ap-southeast-1:
-      AMZNLINUX2: ami-08d3c6fdb83b512dc
-      AMZNLINUX2ARM: ami-0b404894f3a1e6da0
-      US2004HVM: ami-04bdbc2d7a6c7c6dd
-      CENTOS7HVM: ami-07f65177cb990d65b
-      SLES15HVM: ami-070356c21596ddc67
-    ap-southeast-2:
-      AMZNLINUX2: ami-0d06793241742e720
-      AMZNLINUX2ARM: ami-0c1c73154cfdcc852
-      US2004HVM: ami-0ca03d6e174a93774
-      CENTOS7HVM: ami-0b2045146eb00b617
-      SLES15HVM: ami-0c4245381c67efb39
-    ca-central-1:
-      AMZNLINUX2: ami-0bb8b9131af2dcf58
-      AMZNLINUX2ARM: ami-045efbe545362bcfa
-      US2004HVM: ami-02fffdf1e233d734c
-      CENTOS7HVM: ami-04a25c39dc7a8aebb
-      SLES15HVM: ami-0c97d9b588207dad6
-    eu-central-1:
-      AMZNLINUX2: ami-05f5f4f906feab6a7
-      AMZNLINUX2ARM: ami-08b91e717872d4caf
-      US2004HVM: ami-06acd502731e7718e
-      CENTOS7HVM: ami-0e8286b71b81c3cc1
-      SLES15HVM: ami-05dfd265ea534a3e9
-    me-south-1:
-      AMZNLINUX2: ami-0880769bc15eeec4f
-      AMZNLINUX2ARM: ami-001dc219c441b922d
-      US2004HVM: ami-03cc0b5db8321f2e5
-      CENTOS7HVM: ami-011c71a894b10f35b
-      SLES15HVM: ami-0252c6d3a59c7473b
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVMARM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/arm64/hvm/ebs-gp2/ami-id}}'
+      CENTOS7HVM: ami-0e7ff6dec8807b69f
+      SLES15SP4HVM: ami-0a35402bec1746848
     ap-east-1:
-      AMZNLINUX2: ami-0aca22cb23f122f27
-      AMZNLINUX2ARM: ami-01f5cec80321bd86e
-      US2004HVM: ami-0c7e5903bee96ef81
-      CENTOS7HVM: ami-0e5c29e6c87a9644f
-      SLES15HVM: ami-0ad6e15bcbb2dbe38
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVMARM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/arm64/hvm/ebs-gp2/ami-id}}'
+      CENTOS7HVM: ami-09f998aa76774295f
+      SLES15SP4HVM: ami-099cd35f1029fbb43
+    ap-northeast-1:
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVMARM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/arm64/hvm/ebs-gp2/ami-id}}'
+      CENTOS7HVM: ami-0fd48c6031f8700df
+      SLES15SP4HVM: ami-00d23bc0982358a0d
+    ap-northeast-2:
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVMARM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/arm64/hvm/ebs-gp2/ami-id}}'
+      CENTOS7HVM: ami-09e2a570cb404b37e
+      SLES15SP4HVM: ami-0f98e55603dce84bb
+    ap-northeast-3:
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVMARM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/arm64/hvm/ebs-gp2/ami-id}}'
+      CENTOS7HVM: ami-02483871b467662e6
+      SLES15SP4HVM: ami-07a1a21ded97351e1
+    ap-south-1:
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVMARM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/arm64/hvm/ebs-gp2/ami-id}}'
+      CENTOS7HVM: ami-0763cf792771fe1bd
+      SLES15SP4HVM: ami-05972b154774b3b6c
+    ap-south-2:
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVMARM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/arm64/hvm/ebs-gp2/ami-id}}'
+      # CENTOS7HVM:
+      SLES15SP4HVM: ami-0b279671a9fefe89e
+    ap-southeast-1:
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVMARM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/arm64/hvm/ebs-gp2/ami-id}}'
+      CENTOS7HVM: ami-00d785f1c099d5a0e
+      SLES15SP4HVM: ami-018d29ba42690f33f
+    ap-southeast-2:
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVMARM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/arm64/hvm/ebs-gp2/ami-id}}'
+      CENTOS7HVM: ami-0cf5f53cea16d8cbf
+      SLES15SP4HVM: ami-05d71c3dc5d752707
+    ap-southeast-3:
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVMARM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/arm64/hvm/ebs-gp2/ami-id}}'
+      CENTOS7HVM: ami-0dc1b02193df64768
+      SLES15SP4HVM: ami-005899737135b4201
+    ap-southeast-4:
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVMARM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/arm64/hvm/ebs-gp2/ami-id}}'
+      # CENTOS7HVM:
+      SLES15SP4HVM: ami-02a07742261ace7bf
+    ca-central-1:
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVMARM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/arm64/hvm/ebs-gp2/ami-id}}'
+      CENTOS7HVM: ami-0ca3e32c623d61bdf
+      SLES15SP4HVM: ami-0912e39d9b4e048b8
+    eu-central-1:
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVMARM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/arm64/hvm/ebs-gp2/ami-id}}'
+      CENTOS7HVM: ami-0b4c74d41ee4bed78
+      SLES15SP4HVM: ami-09fbf1068ddc2adff
+    eu-central-2:
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVMARM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/arm64/hvm/ebs-gp2/ami-id}}'
+      CENTOS7HVM: ami-0e7ae4065721cafb3
+      SLES15SP4HVM: ami-0ff8a4906f42e343f
     eu-north-1:
-      AMZNLINUX2: ami-04e9e89793783442d
-      AMZNLINUX2ARM: ami-06c417cf0d6b13d9c
-      US2004HVM: ami-0d86b044a70ecfc6e
-      CENTOS7HVM: ami-05788af9005ef9a93
-      SLES15HVM: ami-0741fa1a008af40ad
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVMARM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/arm64/hvm/ebs-gp2/ami-id}}'
+      CENTOS7HVM: ami-08998a9a61da37c77
+      SLES15SP4HVM: ami-0f065384dc57a404b
     eu-south-1:
-      AMZNLINUX2: ami-0f447354763f0eaac
-      AMZNLINUX2ARM: ami-011d4067dedd119f5
-      US2004HVM: ami-035e213233577516f
-      CENTOS7HVM: ami-03014b98e9665115a
-      SLES15HVM: ami-051cbea0e7660063d
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVMARM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/arm64/hvm/ebs-gp2/ami-id}}'
+      CENTOS7HVM: ami-0ce6f8b3dbadf3b41
+      SLES15SP4HVM: ami-079eaadb2d6edc8fc
+    eu-south-2:
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVMARM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/arm64/hvm/ebs-gp2/ami-id}}'
+      CENTOS7HVM: ami-0f4cbddb1f35cb43c
+      SLES15SP4HVM: ami-0ef8cea6abf7043a6
     eu-west-1:
-      AMZNLINUX2: ami-05489a3f80e532309
-      AMZNLINUX2ARM: ami-06055ab1b3dc70f03
-      US2004HVM: ami-0076b212fad243d9e
-      CENTOS7HVM: ami-0b850cf02cc00fdc8
-      SLES15HVM: ami-0a58a1b152ba55f1d
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVMARM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/arm64/hvm/ebs-gp2/ami-id}}'
+      CENTOS7HVM: ami-0c1f3a8058fde8814
+      SLES15SP4HVM: ami-0a896b04a8a52170e
     eu-west-2:
-      AMZNLINUX2: ami-01bb5fb90f6e8dc9d
-      AMZNLINUX2ARM: ami-08a5f51a19810bf69
-      US2004HVM: ami-0d0f12c129e9acd4f
-      CENTOS7HVM: ami-09e5afc68eed60ef4
-      SLES15HVM: ami-01497522185aaa4ee
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVMARM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/arm64/hvm/ebs-gp2/ami-id}}'
+      CENTOS7HVM: ami-036e229aa5fa198ba
+      SLES15SP4HVM: ami-0756f59576219f593
     eu-west-3:
-      AMZNLINUX2: ami-0220e6e3ec3edb410
-      AMZNLINUX2ARM: ami-0958b74cb185c1beb
-      US2004HVM: ami-06c781daa01c5c4d9
-      CENTOS7HVM: ami-0cb72d2e599cffbf9
-      SLES15HVM: ami-0f238bd4c6fdbefb0
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVMARM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/arm64/hvm/ebs-gp2/ami-id}}'
+      CENTOS7HVM: ami-0eb3117f2ccc34ba6
+      SLES15SP4HVM: ami-07d54cb8ada9f50a1
+    me-central-1:
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVMARM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/arm64/hvm/ebs-gp2/ami-id}}'
+      CENTOS7HVM: ami-0f3bfe072614fef65
+      SLES15SP4HVM: ami-0e58a0202165f87c2
+    me-south-1:
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVMARM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/arm64/hvm/ebs-gp2/ami-id}}'
+      CENTOS7HVM: ami-03a968cc818f19908
+      SLES15SP4HVM: ami-0509ec04da2a424ae
     sa-east-1:
-      AMZNLINUX2: ami-00a928f066e0e354d
-      AMZNLINUX2ARM: ami-04e03458901339bf1
-      US2004HVM: ami-09ee43e5c8d69b37e
-      CENTOS7HVM: ami-0b30f38d939dd4b54
-      SLES15HVM: ami-0772af912976aa692
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVMARM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/arm64/hvm/ebs-gp2/ami-id}}'
+      CENTOS7HVM: ami-04384c010169ed8d3
+      SLES15SP4HVM: ami-0a2100b654065fdd0
     us-east-1:
-      AMZNLINUX2: ami-06eecef118bbf9259
-      AMZNLINUX2ARM: ami-090230ed0c6b13c74
-      US2004HVM: ami-0708edb40a885c6ee
-      CENTOS7HVM: ami-0affd4508a5d2481b
-      SLES15HVM: ami-0b1764f3d7d2e2316
-    us-gov-west-1:
-      AMZNLINUX2: ami-0281624483c624b77
-      AMZNLINUX2ARM: ami-08375cc8096939cac
-      SLES15HVM: ami-57c0ba36
-    us-gov-east-1:
-      AMZNLINUX2: ami-0860989603b7e0e11
-      AMZNLINUX2ARM: ami-07b3a284855ced8b2
-      SLES15HVM: ami-05e4bedfad53425e9
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVMARM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/arm64/hvm/ebs-gp2/ami-id}}'
+      CENTOS7HVM: ami-002070d43b0a4f171
+      SLES15SP4HVM: ami-0c544bda9765444c2
     us-east-2:
-      AMZNLINUX2: ami-0fe23c115c3ba9bac
-      AMZNLINUX2ARM: ami-00b9738bf35b1d1de
-      US2004HVM: ami-072e87c1b25ab0a8b
-      CENTOS7HVM: ami-01e36b7901e884a10
-      SLES15HVM: ami-05ea824317ffc0c20
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVMARM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/arm64/hvm/ebs-gp2/ami-id}}'
+      CENTOS7HVM: ami-05a36e1502605b4aa
+      SLES15SP4HVM: ami-05e886c9f13122451
     us-west-1:
-      AMZNLINUX2: ami-088cd0732583ac947
-      AMZNLINUX2ARM: ami-0e48a188782d0412a
-      US2004HVM: ami-0282af5c116b38803
-      CENTOS7HVM: ami-098f55b4287a885ba
-      SLES15HVM: ami-00e34a7624e5a7107
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVMARM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/arm64/hvm/ebs-gp2/ami-id}}'
+      CENTOS7HVM: ami-0dee0f906cf114191
+      SLES15SP4HVM: ami-00c7ea5602814d691
     us-west-2:
-      AMZNLINUX2: ami-00af37d1144686454
-      AMZNLINUX2ARM: ami-0d3127dab514c6a1a
-      US2004HVM: ami-0e623c4c77b6afcd1
-      CENTOS7HVM: ami-0bc06212a56393ee1
-      SLES15HVM: ami-0f1e3b3fb0fec0361
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      US2204HVMARM: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/arm64/hvm/ebs-gp2/ami-id}}'
+      CENTOS7HVM: ami-08c191625cfb7ee61
+      SLES15SP4HVM: ami-0a8bcde34acb334ab
+    us-gov-east-1:
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: ami-0cfbbbb41dd6a9cad
+      US2204HVM: ami-0c4bea13c0e0c588f
+      US2204HVMARM: ami-0dbcf7fc866b67aed
+      CENTOS7HVM: ami-00c6b007ba906a530
+      # SLES15SP4HVM:
+    us-gov-west-1:
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: ami-0b152eed9cb83f2bd
+      US2204HVM: ami-0585fd40760ad42a3
+      US2204HVMARM: ami-0f0aac22ded9e2425
+      CENTOS7HVM: ami-08b470dba6016d395
+      # SLES15SP4HVM:
     cn-north-1:
-      AMZNLINUX2: ami-0b3a41626d881b1e8
-      AMZNLINUX2ARM: ami-0dce21d31b4d95cdf
-      CENTOS7HVM: ami-08c16f7e830c0e393
-      SLES15HVM: ami-021392849b6221a81
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: ami-0ee7de898385f3816
+      US2204HVM: ami-0e3f9b0ee702d8037
+      US2204HVMARM: ami-0577c50047809e101
+      CENTOS7HVM: ami-0860d3f26ee044bb9
+      # SLES15SP4HVM:
     cn-northwest-1:
-      AMZNLINUX2: ami-093555c5cfc7bd553
-      AMZNLINUX2ARM: ami-098d8f81137f8fa0b
-      CENTOS7HVM: ami-0f21aa96a61df8c44
-      SLES15HVM: ami-00e1de3ee6d0d28ea
+      AMZNLINUX2: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}'
+      AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
+      AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      US2004HVM: ami-0d18cf3d76f53fd2a
+      US2204HVM: ami-0e28271fed7614688
+      US2204HVMARM: ami-0e1c2b33dbe3c33cc
+      CENTOS7HVM: ami-01cb2ecea35798f3f
   LinuxAMINameMap:
     Amazon-Linux2-HVM:
       Code: AMZNLINUX2
@@ -444,17 +645,26 @@ Mappings:
     Amazon-Linux2-HVM-ARM:
       Code: AMZNLINUX2ARM
       OS: Amazon
+    Amazon-Linux2023:
+      Code: AMZNLINUX2023
+      OS: Amazon
+    Amazon-Linux2023-ARM:
+      Code: AMZNLINUX2023ARM
+      OS: Amazon
     CentOS-7-HVM:
       Code: CENTOS7HVM
       OS: CentOS
-    Ubuntu-Server-18.04-LTS-HVM:
-      Code: US1804HVM
-      OS: Ubuntu
     Ubuntu-Server-20.04-LTS-HVM:
       Code: US2004HVM
       OS: Ubuntu
+    Ubuntu-Server-22.04-LTS-HVM:
+      Code: US2204HVM
+      OS: Ubuntu
+    Ubuntu-Server-22.04-LTS-HVM-ARM:
+      Code: US2204HVMARM
+      OS: Ubuntu
     SUSE-SLES-15-HVM:
-      Code: SLES15HVM
+      Code: SLES15SP4HVM
       OS: SLES
 Conditions:
   RolePathProvided: !Not [!Equals ["", !Ref RolePath]]
@@ -486,7 +696,7 @@ Conditions:
       - ''
   UsingDefaultBucket: !Equals
     - !Ref QSS3BucketName
-    - 'aws-quickstart'
+    - 'aws-ia'
   DefaultBanner: !Equals [!Ref BastionBanner, ""]
 Resources:
   BastionMainLogGroup:
@@ -655,7 +865,9 @@ Resources:
   BastionAutoScalingGroup:
     Type: 'AWS::AutoScaling::AutoScalingGroup'
     Properties:
-      LaunchConfigurationName: !Ref BastionLaunchConfiguration
+      LaunchTemplate:
+        LaunchTemplateId: !Ref BastionLaunchTemplate
+        Version: !GetAtt BastionLaunchTemplate.LatestVersionNumber
       VPCZoneIdentifier:
         - !Ref PublicSubnet1ID
         - !Ref PublicSubnet2ID
@@ -676,40 +888,31 @@ Resources:
     UpdatePolicy:
       AutoScalingReplacingUpdate:
         WillReplace: true
-  BastionLaunchConfiguration:
-    Type: 'AWS::AutoScaling::LaunchConfiguration'
+  BastionLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
     Metadata:
-      'AWS::CloudFormation::Authentication':
+      AWS::CloudFormation::Authentication:
         S3AccessCreds:
           type: S3
-          roleName: !If
-            - CreateIAMRole
-            - !Ref BastionHostRole
-            - !Ref AlternativeIAMRole
+          roleName: !If [CreateIAMRole, !Ref BastionHostRole, !Ref AlternativeIAMRole]
           buckets:
             - !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-      'AWS::CloudFormation::Init':
+      AWS::CloudFormation::Init:
         config:
           files:
             /tmp/auditd.rules:
-              mode: '000550'
+              mode: 000550
               owner: root
               group: root
               content: |
-                -a exit,always -F arch=b64 -S execve
+                cat messages -a exit,always -F arch=b64 -S execve
                 -a exit,always -F arch=b32 -S execve
             /tmp/auditing_configure.sh:
               source: !Sub
-                - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/cfn-ps-linux-bastion/scripts/auditing_configure.sh
-                - S3Bucket: !If
-                    - UsingDefaultBucket
-                    - !Sub 'aws-quickstart-${AWS::Region}'
-                    - !Ref 'QSS3BucketName'
-                  S3Region: !If
-                    - UsingDefaultBucket
-                    - !Ref 'AWS::Region'
-                    - !Ref 'QSS3BucketRegion'
-              mode: '000550'
+                - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}scripts/auditing_configure.sh
+                - S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+                  S3Region: !If [UsingDefaultBucket, !Ref AWS::Region, !Ref QSS3BucketRegion]
+              mode: 000550
               owner: root
               group: root
               authentication: S3AccessCreds
@@ -718,163 +921,59 @@ Resources:
                 - UseAlternativeInitialization
                 - !Ref AlternativeInitializationScript
                 - !Sub
-                  - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/cfn-ps-linux-bastion/scripts/bastion_bootstrap.sh
-                  - S3Bucket: !If
-                      - UsingDefaultBucket
-                      - !Sub 'aws-quickstart-${AWS::Region}'
-                      - !Ref 'QSS3BucketName'
-                    S3Region: !If
-                      - UsingDefaultBucket
-                      - !Ref 'AWS::Region'
-                      - !Ref 'QSS3BucketRegion'
-              mode: '000550'
+                  - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}scripts/bastion_bootstrap.sh
+                  - S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+                    S3Region: !If [UsingDefaultBucket, !Ref AWS::Region, !Ref QSS3BucketRegion]
+              mode: 000550
               owner: root
               group: root
               authentication: S3AccessCreds
-            /tmp/aerospike_monitoring_stack_asbench_install.sh:
-              content: !Sub
-                - |
-                  #!/bin/bash
-
-                  # download monitoring stack binaries
-                  mkdir -p /home/ec2-user/monitoring_stack
-                  cd /home/ec2-user/monitoring_stack
-
-                  # Prometheus installation
-                  aws s3 cp s3://${S3Bucket}/${QSS3KeyPrefix}scripts/prometheus-2.30.3.linux-amd64.tar.gz .
-                  tar xvfz prometheus-*.tar.gz
-
-                  # Grafana installation
-                  wget https://dl.grafana.com/oss/release/grafana-8.2.1-1.x86_64.rpm
-                  sudo yum install -y grafana-8.2.1-1.x86_64.rpm
-                  sudo systemctl daemon-reload
-                  sudo systemctl start grafana-server
-                  sudo systemctl status grafana-server
-
-                  # asbench installation
-                  sudo yum install -y wget tar python3 gzip shadow-utils.x86_64
-                  sudo wget -O aerospike-amazon_linux.tgz 'https://download.aerospike.com/download/tools/6.1.2/artifact/el7'
-                  sudo tar -xvzf aerospike-amazon_linux.tgz
-                  cd aerospike-tools*
-                  sudo ./asinstall > /dev/null 2>&1 &
-                - REGION: !Sub "${AWS::Region}"
-                  S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-              mode: '000744'
-              owner: root
-              group: root
-            /tmp/create_sample_prometheus_config.sh:
-              content: |
-                  #!/bin/bash
-                  # sample prometheus configuration, note aerospike_targets will be replaced by aerospike node IP:port
-                  PROMETHUS_CONFIG_TEMP_LOCATION=/home/ec2-user/monitoring_stack/prometheus-2.30.3.linux-amd64/prometheus.yml
-                  PROMETHUS_CONFIG="
-                  global:
-                    scrape_interval: 15s
-                    evaluation_interval: 15s
-
-                  scrape_configs:
-                    - job_name: prometheus
-                      static_configs:
-                        - targets: ["localhost:9090"]
-
-                    - job_name: aerospike
-                      static_configs:
-                        - targets: aerospike_targets
-                  "
-                  echo -e "$PROMETHUS_CONFIG" > $PROMETHUS_CONFIG_TEMP_LOCATION
-              mode: '000744'
-              owner: root
-              group: root
-            /tmp/update_prometheus_configure.sh:
-              content: !Sub
-                - |
-                  #!/bin/bash
-                  export AWS_REGION=${AWS::Region}
-                  export ASG_NAME=${AerospikeClusterAutoscalingGroup}
-                  aws s3 cp s3://${S3Bucket}/${QSS3KeyPrefix}scripts/prometheus_configure.sh .
-                  chmod +x prometheus_configure.sh
-                  ./prometheus_configure.sh
-                - REGION: !Sub "${AWS::Region}"
-                  S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-              mode: '000755'
-              owner: root
-              group: root
-            /tmp/grafana_configure.sh:
-              content: !Sub
-                - |
-                  #!/bin/bash
-                  aws s3 cp s3://${S3Bucket}/${QSS3KeyPrefix}scripts/grafana_configure.sh .
-                  chmod +x grafana_configure.sh
-                  ./grafana_configure.sh
-                - REGION: !Sub "${AWS::Region}"
-                  S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-              mode: '000755'
-              owner: root
-              group: root
           commands:
             a-add_auditd_rules:
-              cwd: '/tmp/'
+              cwd: /tmp/
               env:
                 BASTION_OS: !FindInMap [LinuxAMINameMap, !Ref BastionAMIOS, OS]
-              command: "./auditing_configure.sh"
-              # command:
-              #   - !If [ ]
-              #   - "cat /tmp/auditd.rules >> /etc/audit/rules.d/audit.rules && service auditd restart"
+              command: ./auditing_configure.sh
             b-bootstrap:
-              cwd: '/tmp/'
+              cwd: /tmp/
               env:
                 REGION: !Sub ${AWS::Region}
                 URL_SUFFIX: !Sub ${AWS::URLSuffix}
-                BANNER_REGION: !If [ UsingDefaultBucket, !Ref 'AWS::Region', !Ref 'QSS3BucketRegion' ]
+                BANNER_REGION: !If [UsingDefaultBucket, !Ref AWS::Region, !Ref QSS3BucketRegion]
               command: !Sub
-                - "./bastion_bootstrap.sh --banner ${BannerUrl} --enable ${EnableBanner} --tcp-forwarding ${EnableTCPForwarding} --x11-forwarding ${EnableX11Forwarding}"
+                - ./bastion_bootstrap.sh --banner ${BannerUrl} --enable ${EnableBanner} --tcp-forwarding ${EnableTCPForwarding} --x11-forwarding ${EnableX11Forwarding}
                 - BannerUrl: !If
-                  - DefaultBanner
-                  - !Sub
-                    - s3://${S3Bucket}/${QSS3KeyPrefix}scripts/monitoring_banner.txt
-                    - S3Bucket: !If [ UsingDefaultBucket, !Sub 'aws-quickstart-${AWS::Region}', !Ref 'QSS3BucketName' ]
-                  - !Ref BastionBanner
-            c-aerospike_monitoring:
-              cwd: '/tmp/'
-              command: "./aerospike_monitoring_stack_asbench_install.sh"
-            d-create-prometheus_config:
-              cwd: '/tmp/'
-              env:
-                REGION: !Sub ${AWS::Region}
-              command: "./create_sample_prometheus_config.sh"
-            e-update_prometheus_cluster:
-              cwd: '/tmp/'
-              command: "./update_prometheus_configure.sh"
-            f-grafana_configure:
-              cwd: '/tmp/'
-              command: "./grafana_configure.sh"
+                    - DefaultBanner
+                    - !Sub
+                      - s3://${S3Bucket}/${QSS3KeyPrefix}scripts/banner_message.txt
+                      - S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+                    - !Ref BastionBanner
     Properties:
-      AssociatePublicIpAddress: true
-      PlacementTenancy: !Ref BastionTenancy
-      KeyName: !Ref KeyPairName
-      IamInstanceProfile: !Ref BastionHostProfile
-      ImageId: !If
-        - UseOSImageOverride
-        - !Ref OSImageOverride
-        - !FindInMap
-          - AWSAMIRegionMap
-          - !Ref 'AWS::Region'
-          - !FindInMap
-            - LinuxAMINameMap
-            - !Ref BastionAMIOS
-            - Code
-      SecurityGroups:
-        - !Ref BastionSecurityGroup
-      InstanceType: !Ref BastionInstanceType
-      BlockDeviceMappings:
-        - DeviceName: /dev/xvda
-          Ebs:
-            VolumeSize: !Ref RootVolumeSize
-            VolumeType: gp2
-            Encrypted: true
-            DeleteOnTermination: true
-      UserData:
-        Fn::Base64: !Sub
+      LaunchTemplateName: !Sub '${AWS::StackName}-BastionLaunchTemplate'
+      LaunchTemplateData:
+        MetadataOptions:
+          HttpTokens: required
+        IamInstanceProfile:
+          Arn: !GetAtt BastionHostProfile.Arn
+        ImageId: !If
+          - UseOSImageOverride
+          - !Ref OSImageOverride
+          - !FindInMap [AWSAMIRegionMap, !Ref AWS::Region, !FindInMap [LinuxAMINameMap, !Ref BastionAMIOS, Code]]
+        InstanceType: !Ref BastionInstanceType
+        KeyName: !Ref KeyPairName
+        Placement:
+          Tenancy: !Ref BastionTenancy
+        SecurityGroupIds:
+          - !Ref BastionSecurityGroup
+        BlockDeviceMappings:
+          - DeviceName: /dev/xvda
+            Ebs:
+              VolumeSize: !Ref RootVolumeSize
+              VolumeType: gp2
+              Encrypted: true
+              DeleteOnTermination: true
+        UserData:
+          Fn::Base64: !Sub
           - |
             #!/bin/bash
             set -x
@@ -907,7 +1006,7 @@ Resources:
 
             EIP_LIST="${EIP1},${EIP2},${EIP3},${EIP4}"
             CLOUDWATCHGROUP=${BastionMainLogGroup}
-            cfn-init -v --stack '${AWS::StackName}' --resource BastionLaunchConfiguration --region ${AWS::Region} || cfn_fail
+            cfn-init -v --stack '${AWS::StackName}' --resource BastionLaunchTemplate --region ${AWS::Region} || cfn_fail
             [ $(qs_status) == 0 ] && cfn_success || cfn_fail
           - EIP2:
               !If
