@@ -576,6 +576,7 @@ Mappings:
       AMZNLINUX2ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}'
       AMZNLINUX2023: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
       AMZNLINUX2023ARM: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+  LinuxAMINameMap:
     Amazon-Linux2-HVM:
       Code: AMZNLINUX2
       OS: Amazon
